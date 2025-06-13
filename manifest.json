@@ -1,0 +1,16 @@
+{
+  "name": "Babel Search",
+  "short_name": "Babel",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#673ab7",
+  "description": "Find real words in the Library of Babel.",
+  "icons": [
+    {
+      "src": "assets/icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

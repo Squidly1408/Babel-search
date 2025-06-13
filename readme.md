@@ -4,7 +4,7 @@
 Find real words hidden in random pages, race the clock, and test your vocabulary skills.
 
 🧠 Built using HTML, JS, and a dictionary dataset.  
-🚀 Live at: [https://yourusername.github.io/babel-search](https://yourusername.github.io/babel-search)
+🚀 Live at: [https://babel-search.github.io/](https://babel-search.github.io/)
 
 ## Features
 

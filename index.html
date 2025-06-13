@@ -4,133 +4,36 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Babel Search</title>
-  <meta name="description" content="Babel Search – A challenging word-finding game based on the Library of Babel. Test your vocabulary and speed!" />
-  <meta name="keywords" content="Babel, Library of Babel, word game, dictionary challenge, vocabulary game" />
-  <meta name="author" content="Babel Search Dev Team" />
+  <meta name="description" content="Babel Search – A challenging word‑finding game based on the Library of Babel. Test your vocabulary and speed!" />
   <link rel="icon" type="image/png" href="favicon.png" />
-  <meta property="og:title" content="Babel Search" />
-  <meta property="og:description" content="Find real words hidden in the infinite pages of the Library of Babel. Think fast, search smarter." />
-  <meta property="og:image" content="favicon.png" />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://your-github-pages-site-url.com" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Babel Search" />
-  <meta name="twitter:description" content="Can you find real words faster than the infinite? Play Babel Search now." />
-  <meta name="twitter:image" content="favicon.png" />
   <meta name="theme-color" content="#673ab7" />
+
+
+  <!-- styles -->
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: system-ui, sans-serif;
-      background: #111;
-      color: #eee;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      gap: .75rem;
-      padding: 1rem;
-    }
-    h1 {
-      font-size: 2rem;
-      text-align: center;
-      margin: .2rem 0 .4rem;
-    }
-    #stats {
-      text-align: center;
-      font-size: 1.1rem;
-    }
-    #controls {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: .75rem;
-    }
-    button {
-      padding: .55rem 1rem;
-      border: none;
-      border-radius: .55rem;
-      background: #673ab7;
-      color: #fff;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background .2s;
-    }
-    button:disabled {
-      background: #555;
-      cursor: not-allowed;
-    }
-    button:not(:disabled):hover {
-      background: #7e57c2;
-    }
-    #pageContainer {
-      flex: 1;
-      background: #222;
-      border: 2px solid #333;
-      border-radius: .45rem;
-      padding: 1rem;
-      white-space: pre-wrap;
-      overflow-y: auto;
-      font-family: "Fira Mono", monospace;
-      line-height: 1.35;
-      user-select: text;
-      max-height: 70vh;
-    }
-    mark {
-      background: #ffeb3b;
-      color: #000;
-    }
-    #modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,.75);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(2px);
-      z-index: 9999;
-    }
-    #modal.success .dialog {
-      border: 2px solid #4caf50;
-    }
-    #modal.fail .dialog {
-      border: 2px solid #e53935;
-    }
-    #modal .dialog {
-      background: #222;
-      padding: 1.5rem 2rem;
-      border-radius: .5rem;
-      max-width: 90%;
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-      box-shadow: 0 0 10px #000;
-    }
-    #modal .dialog p {
-      margin-bottom: 1rem;
-      font-size: 1.05rem;
-    }
-    #modal .dialog button {
-      width: 6rem;
-    }
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 1.6rem;
-      }
-      button {
-        font-size: .9rem;
-        padding: .5rem .75rem;
-      }
-      #controls {
-        flex-direction: column;
-        align-items: center;
-      }
-    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,sans-serif;background:#111;color:#eee;display:flex;flex-direction:column;min-height:100vh;gap:.75rem;padding:1rem}
+    h1{font-size:2rem;text-align:center;margin:.2rem 0 .4rem}
+    #stats{text-align:center;font-size:1.1rem}
+    #controls{display:flex;justify-content:center;flex-wrap:wrap;gap:.75rem}
+    button{padding:.55rem 1rem;border:none;border-radius:.55rem;background:#673ab7;color:#fff;font-size:1rem;cursor:pointer;transition:background .2s}
+    button:disabled{background:#555;cursor:not-allowed}
+    button:not(:disabled):hover{background:#7e57c2}
+    #pageContainer{flex:1;background:#222;border:2px solid #333;border-radius:.45rem;padding:1rem;white-space:pre-wrap;overflow-y:auto;font-family:"Fira Mono",monospace;line-height:1.35;user-select:text;max-height:70vh}
+    mark{background:#ffeb3b;color:#000}
+    /* modal */
+    #modal,#helpModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px);z-index:9999;padding:1rem}
+    .dialog{background:#222;padding:1.5rem 2rem;border-radius:.5rem;max-width:90%;width:100%;max-width:420px;text-align:center;box-shadow:0 0 10px #000}
+    #modal.success .dialog{border:2px solid #4caf50}#modal.fail .dialog{border:2px solid #e53935}
+    .dialog p{margin-bottom:1rem;font-size:1.05rem}
+    .dialog button{width:6rem;margin-top:.5rem}
+    /* leaderboard */
+    #boards{display:flex;flex-direction:column;gap:1rem}
+    table{width:100%;border-collapse:collapse}th,td{padding:.35rem;text-align:center;border-bottom:1px solid #333}th{background:#673ab7}
+    caption{font-weight:600;margin-bottom:.3rem}
+    @media(max-width:600px){h1{font-size:1.6rem}button{font-size:.9rem;padding:.5rem .75rem}#controls{flex-direction:column;align-items:center}}
   </style>
 </head>
-
 <body>
   <h1>Babel Search</h1>
   <div id="stats">Pages Visited: <span id="pages">0</span> | Time: <span id="time">0.0</span>s</div>
@@ -138,177 +41,93 @@
     <button id="startBtn">Start Game</button>
     <button id="nextBtn" disabled>Next Page (+1 min)</button>
     <button id="checkBtn" disabled>Check Word</button>
+    <button id="scoresBtn">Scores</button>
+    <button id="helpBtn">Help</button>
     <button id="resetBtn" disabled>Reset</button>
   </div>
   <div id="pageContainer" tabindex="0"></div>
 
-  <!-- Modal overlay -->
-  <div id="modal" class="success">
-    <div class="dialog">
-      <p id="modalMsg"></p>
-      <button id="modalOk">OK</button>
-    </div>
+  <!-- Modals -->
+  <div id="modal" class="success"><div class="dialog"><p id="modalMsg"></p><button id="modalOk">OK</button></div></div>
+  <div id="helpModal"><div class="dialog"><h2>How to Play</h2><p>1. Tap <b>Start Game</b> to load a random Library of Babel page.<br>2. Highlight any real English word (≥3 letters).<br>3. Tap <b>Check Word</b>. Correct words stop the timer; wrong words add 60 s and load a new page.<br>4. <b>Next Page</b> skips the page (+60 s penalty).<br>5. Long words earn bonuses: -5 s per letter beyond the 4th.</p><button id="helpOk">Got it!</button></div></div>
+  <!-- Leaderboards -->
+  <div id="boards" style="display:none">
+   <div class="dialog">
+     <table id="localBoard"><caption>Your Top Scores</caption><thead><tr><th>#</th><th>Time (s)</th><th>Pages</th><th>Date</th></tr></thead><tbody></tbody></table>
+     <button id="boardsClose">Close</button>
+   </div>
   </div>
 
-  <script>
-    /* ---------------- Configuration ---------------- */
-    const DICTIONARY_URL =
-      "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt";
-    const makeRandomPageURL = () =>
-      "https://api.allorigins.win/raw?url=" +
-      encodeURIComponent(`https://libraryofbabel.info/random.cgi?nocache=${Date.now()}`);
+<script>
+/* ---------------- Configuration ---------------- */
+const DICTIONARY_URL = "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt";
+const makeRandomPageURL = () => "https://api.allorigins.win/raw?url=" + encodeURIComponent(`https://libraryofbabel.info/random.cgi?nocache=${Date.now()}`);
+const MIN_LEN = 3;
 
-    /* ---------------- State ---------------- */
-    const dictionary = new Set();
-    let dictReady = false;
-    let timerId = null;
-    let startPerf = 0;
-    let extraSeconds = 0; // + for penalties, - for bonuses
-    let pagesVisited = 0;
-    let gameActive = false;
+/* ---------------- State ---------------- */
+const dictionary=new Set();let dictReady=false;let timerId=null;let startPerf=0;let extraSeconds=0;let pagesVisited=0;let gameActive=false;let lastRange=null;let lastText="";
+const deviceIdPromise=(async()=>{const data=navigator.userAgent+"|"+navigator.platform+"|"+screen.width+"x"+screen.height;const enc=new TextEncoder().encode(data);const hashBuf=await crypto.subtle.digest('SHA-256',enc);return Array.from(new Uint8Array(hashBuf)).map(b=>b.toString(16).padStart(2,'0')).join('');})();
 
-    /* ---------------- DOM ---------------- */
-    const pageDiv   = document.getElementById('pageContainer');
-    const pagesSpan = document.getElementById('pages');
-    const timeSpan  = document.getElementById('time');
+/* ---------------- DOM ---------------- */
+const qs=id=>document.getElementById(id);
+const pageDiv=qs('pageContainer');const pagesSpan=qs('pages');const timeSpan=qs('time');
+const startBtn=qs('startBtn');const nextBtn=qs('nextBtn');const checkBtn=qs('checkBtn');const resetBtn=qs('resetBtn');const scoresBtn=qs('scoresBtn');const helpBtn=qs('helpBtn');
+const modal=qs('modal');const modalMsg=qs('modalMsg');const modalOk=qs('modalOk');
+const helpModal=qs('helpModal');const helpOk=qs('helpOk');
+const boards=qs('boards');const boardsClose=qs('boardsClose');
 
-    const startBtn  = document.getElementById('startBtn');
-    const nextBtn   = document.getElementById('nextBtn');
-    const checkBtn  = document.getElementById('checkBtn');
-    const resetBtn  = document.getElementById('resetBtn');
+/* ---------------- Utility ---------------- */
+const fmt=s=>s.toFixed(1);
+function currentElapsed(){return((performance.now()-startPerf)/1000)+extraSeconds;}
+function updateStats(){timeSpan.textContent=fmt(Math.max(0,currentElapsed()));pagesSpan.textContent=pagesVisited;}
+function startTimer(){startPerf=performance.now();timerId=setInterval(updateStats,100);}function stopTimer(){clearInterval(timerId);updateStats();}
+function showModal(msg,isSuccess){modalMsg.textContent=msg;modal.classList.toggle('success',isSuccess);modal.classList.toggle('fail',!isSuccess);modal.style.display='flex';}
+modalOk.onclick=()=>modal.style.display='none';
+helpBtn.onclick=()=>helpModal.style.display='flex';helpOk.onclick=()=>helpModal.style.display='none';
+boardsClose.onclick=()=>boards.style.display='none';
 
-    const modal     = document.getElementById('modal');
-    const modalMsg  = document.getElementById('modalMsg');
-    const modalOk   = document.getElementById('modalOk');
+/* ---------------- Dictionary ---------------- */
+async function loadDictionary(){const txt=await fetch(DICTIONARY_URL).then(r=>r.text());txt.split(/\r?\n/).forEach(w=>dictionary.add(w.trim().toLowerCase()));dictReady=true;}
 
-    /* ---------------- Utility ---------------- */
-    const fmt = (s) => s.toFixed(1);
+/* ---------------- Page fetch ---------------- */
+async function fetchRandomPageText(){const html=await fetch(makeRandomPageURL()).then(r=>r.text());const temp=document.createElement('html');temp.innerHTML=html;const pre=temp.querySelector('pre');return pre?pre.innerText:'(failed to parse page)';}
+async function loadPage(){pageDiv.textContent='Loading…';window.getSelection().removeAllRanges();lastRange=null;try{const t=await fetchRandomPageText();pagesVisited++;pageDiv.textContent=t;pageDiv.scrollTop=0;updateStats();}catch(e){pageDiv.textContent='Error: '+e.message;}}
 
-    function currentElapsed(){
-      return ((performance.now()-startPerf)/1000)+extraSeconds;
-    }
-    function updateStats(){
-      timeSpan.textContent = fmt(Math.max(0,currentElapsed()));
-      pagesSpan.textContent = pagesVisited;
-    }
-    function startTimer(){
-      startPerf = performance.now();
-      timerId = setInterval(updateStats,100);
-    }
-    function stopTimer(){
-      clearInterval(timerId);
-      updateStats();
-    }
+/* ---------------- Game control ---------------- */
+function resetGame(){gameActive=false;pagesVisited=0;extraSeconds=0;stopTimer();pageDiv.textContent='';updateStats();startBtn.disabled=false;nextBtn.disabled=checkBtn.disabled=resetBtn.disabled=true;}
+async function startGame(){if(!dictReady){startBtn.textContent='Loading…';await loadDictionary();startBtn.textContent='Start Game';}
+ gameActive=true;pagesVisited=0;extraSeconds=0;startTimer();updateStats();await loadPage();startBtn.disabled=true;nextBtn.disabled=checkBtn.disabled=resetBtn.disabled=false;}
+async function nextPage(){if(!gameActive)return;extraSeconds+=60;await loadPage();}
 
-    function showModal(msg,isSuccess){
-      modalMsg.textContent = msg;
-      modal.classList.remove('success','fail');
-      modal.classList.add(isSuccess?'success':'fail');
-      modal.style.display = 'flex';
-    }
-    modalOk.addEventListener('click',()=>{modal.style.display='none';});
+/* -------- Selection helpers -------- */
+function storeSelection(){const sel=window.getSelection();if(sel&&sel.rangeCount){lastRange=sel.getRangeAt(0).cloneRange();lastText=sel.toString().trim();}}
+pageDiv.addEventListener('mouseup',storeSelection);pageDiv.addEventListener('touchend',storeSelection);
 
-    async function loadDictionary(){
-      const txt = await fetch(DICTIONARY_URL).then(r=>r.text());
-      txt.split(/\r?\n/).forEach(w=> w && dictionary.add(w.trim().toLowerCase()));
-      dictReady = true;
-    }
+function normalize(w){return w.toLowerCase().replace(/[^a-z]/g,'');}
+function validWord(raw){return new RegExp(`^[A-Za-z]{${MIN_LEN},20}$`).test(raw);}function applyBonus(len){const over=Math.max(len-4,0);if(!over)return 0;const deduct=Math.min(over*5,currentElapsed());extraSeconds-=deduct;updateStats();return deduct;}
 
-    async function fetchRandomPageText(){
-      const html = await fetch(makeRandomPageURL()).then(r=>r.text());
-      const temp = document.createElement('html');
-      temp.innerHTML = html;
-      const pre = temp.querySelector('pre');
-      return pre ? pre.innerText : '(failed to parse page)';
-    }
+async function handleSuccess(word){const bonus=applyBonus(word.length);if(lastRange){const mark=document.createElement('mark');lastRange.surroundContents(mark);}gameActive=false;stopTimer();nextBtn.disabled=checkBtn.disabled=true;await saveLocalScore();await saveWorldScore();showModal(`Success! “${word}” in ${pagesVisited} page(s).\nBonus: -${fmt(bonus)}s\nFinal: ${timeSpan.textContent}s`,true);}
 
-    async function loadPage(){
-      pageDiv.textContent = 'Loading page…';
-      window.getSelection().removeAllRanges();
-      try{
-        const text = await fetchRandomPageText();
-        pagesVisited++;
-        pageDiv.textContent = text;
-        pageDiv.scrollTop = 0;
-        updateStats();
-      }catch(e){
-        pageDiv.textContent = 'Error loading page: '+e.message;
-      }
-    }
+async function checkWord(){if(!gameActive)return;if(!lastText){showModal('Select a word first.',false);return;}if(!validWord(lastText)){showModal('Select a single alphabetic word (≥3 letters).',false);return;}const word=normalize(lastText);if(dictionary.has(word)){await handleSuccess(word);}else{extraSeconds+=60;updateStats();await loadPage();showModal(`“${lastText}” not in dictionary. +60 s and new page.`,false);}lastRange=null;lastText="";}
 
-    function resetGame(){
-      gameActive=false;pagesVisited=0;extraSeconds=0;stopTimer();
-      pageDiv.textContent='';updateStats();
-      startBtn.disabled=false;nextBtn.disabled=checkBtn.disabled=resetBtn.disabled=true;
-    }
+/* -------- Leaderboards -------- */
+function getLocalScores(){return JSON.parse(localStorage.getItem('babelScores')||'[]');}
+function saveLocalScore(){const list=getLocalScores();list.push({time:+timeSpan.textContent,pages:pagesVisited,date:new Date().toLocaleDateString()});list.sort((a,b)=>a.time-b.time);localStorage.setItem('babelScores',JSON.stringify(list.slice(0,20)));}
+function populateLocalBoard(){const tbody=document.querySelector('#localBoard tbody');tbody.innerHTML='';getLocalScores().forEach((s,i)=>{tbody.insertRow().innerHTML=`<td>${i+1}</td><td>${fmt(s.time)}</td><td>${s.pages}</td><td>${s.date}</td>`;});}
 
-    async function startGame(){
-      if(!dictReady){
-        startBtn.textContent='Loading dictionary…';
-        try{await loadDictionary();}catch(e){showModal('Dictionary load failed: '+e.message,false);startBtn.textContent='Start Game';return;}
-        startBtn.textContent='Start Game';
-      }
-      gameActive=true;pagesVisited=0;extraSeconds=0;startTimer();updateStats();await loadPage();
-      startBtn.disabled=true;nextBtn.disabled=false;checkBtn.disabled=false;resetBtn.disabled=false;
-    }
+async function saveWorldScore(){if(!window.db)return;const dateStr=new Date().toISOString().slice(0,10);const id=await deviceIdPromise;const path=`scores/${dateStr}/${id}`;const snap=await get(ref(window.db,path));if(snap.exists())return;await set(ref(window.db,path),{time:+timeSpan.textContent,pages:pagesVisited,ts:Date.now()});}
+async function populateWorldBoard(){if(!window.db)return;const dateStr=new Date().toISOString().slice(0,10);const q=query(ref(window.db,'scores/'+dateStr),orderByChild('time'),limitToFirst(10));const snap=await get(q);const tbody=document.querySelector('#worldBoard tbody');tbody.innerHTML='';if(!snap.exists())return;const list=[];snap.forEach(ch=>list.push({...ch.val(),user:ch.key.slice(0,6)}));list.sort((a,b)=>a.time-b.time).forEach((s,i)=>{tbody.insertRow().innerHTML=`<td>${i+1}</td><td>${fmt(s.time)}</td><td>${s.pages}</td><td>${s.user}</td>`;});}
 
-    async function nextPage(){if(!gameActive) return;extraSeconds+=60;await loadPage();}
+scoresBtn.onclick=async()=>{populateLocalBoard();await populateWorldBoard();boards.style.display='flex';};
 
-    /* ---------- Word validation & bonus ---------- */
-    const MIN_LEN = 3;
-    function normalize(w){return w.toLowerCase().replace(/[^a-z]/g,'');}
-    function validSingleWord(raw){return new RegExp(`^[A-Za-z]{${MIN_LEN},20}$`).test(raw);}
+/* -------- Event bindings -------- */
+startBtn.onclick=startGame;nextBtn.onclick=nextPage;resetBtn.onclick=resetGame;
+checkBtn.addEventListener('mousedown',e=>{e.preventDefault();checkWord();});checkBtn.addEventListener('touchstart',e=>{e.preventDefault();checkWord();});
 
-    // Deduct 5s per letter beyond the 4th
-    function applyBonus(len){
-      const over = Math.max(len-4,0);
-      if(!over) return 0;
-      const deduction = over*5;
-      const current = currentElapsed();
-      const actual = Math.min(deduction,current);
-      extraSeconds -= actual;
-      updateStats();
-      return actual;
-    }
+document.addEventListener('keydown',e=>{if(!gameActive)return;if(e.key==='n')nextPage();if(e.key==='c')checkWord();});
 
-    async function checkSelectedWord(){
-      if(!gameActive) return;
-      const sel = window.getSelection();
-      const raw = sel.toString().trim();
-      if(!raw){showModal('Select a word first.',false);return;}
-      if(!validSingleWord(raw)){
-        showModal(`Please select a single alphabetic word (≥ ${MIN_LEN} letters).`,false);
-        sel.removeAllRanges();return;
-      }
-      const word = normalize(raw);
-      if(dictionary.has(word)){
-        const bonus = applyBonus(word.length);
-        if(sel.rangeCount){const range=sel.getRangeAt(0);const mark=document.createElement('mark');range.surroundContents(mark);}    
-        gameActive=false;stopTimer();nextBtn.disabled=checkBtn.disabled=true;
-        showModal(`Success! “${word}” found in ${pagesVisited} page(s).\nBonus: -${fmt(bonus)}s.\nFinal time: ${timeSpan.textContent}s`,true);
-      }else{
-        extraSeconds += 60;
-        updateStats();
-        sel.removeAllRanges();
-        await loadPage();
-        showModal(`“${raw}” is not in the dictionary. 1‑minute penalty added and page changed.`,false);
-      }
-    }
-
-    /* ---------------- Event bindings ---------------- */
-    startBtn.addEventListener('click',startGame);
-    nextBtn .addEventListener('click',nextPage);
-    resetBtn.addEventListener('click',resetGame);
-    checkBtn.addEventListener('click',()=>{checkSelectedWord();});
-
-    document.addEventListener('keydown',e=>{
-      if(!gameActive) return;
-      if(e.key==='n' && !nextBtn.disabled) nextPage();
-      if(e.key==='c' && !checkBtn.disabled) checkSelectedWord();
-    });
-
-    // Prevent multi-click mass selection
-    pageDiv.addEventListener('mousedown',e=>{if(e.detail>1) e.preventDefault();});
-  </script>
+/* -------- First-visit help -------- */
+if(!localStorage.getItem('babelVisited')){setTimeout(()=>helpModal.style.display='flex',400);localStorage.setItem('babelVisited','1');}
+</script>
 </body>
 </html>

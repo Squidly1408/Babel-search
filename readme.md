@@ -15,4 +15,4 @@ Find real words hidden in random pages, race the clock, and test your vocabulary
 
 ---
 
-Made with ❤️ and Borges.
+Made with ❤️ by Squidly1408.

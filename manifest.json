@@ -8,9 +8,9 @@
   "description": "Find real words in the Library of Babel.",
   "icons": [
     {
-      "src": "assets/icon.png",
+      "src": "favicon.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "500x500"
     }
   ]
 }

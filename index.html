@@ -4,367 +4,577 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Babel Search</title>
-  <meta name="description" content="Babel Search – A challenging word‑finding game based on the Library of Babel. Test your vocabulary and speed!" />
+  <meta name="description" content="Babel Search – A challenging word-finding game based on the Library of Babel. Test your vocabulary and speed!" />
   <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="apple-touch-icon" href="favicon.png" />
+  <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#673ab7" />
 
-
-  <!-- styles -->
   <style>
+    :root{
+      --bg:#111;--panel:#222;--border:#333;--text:#eee;--muted:#aaa;
+      --accent:#673ab7;--accent-hover:#7e57c2;--ok:#4caf50;--bad:#e53935;--mark:#ffeb3b;
+    }
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:system-ui,sans-serif;background:#111;color:#eee;display:flex;flex-direction:column;min-height:100vh;gap:.75rem;padding:1rem}
+    body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;min-height:100vh;gap:.75rem;padding:1rem}
     h1{font-size:2rem;text-align:center;margin:.2rem 0 .4rem}
-    #stats{text-align:center;font-size:1.1rem}
+    h2{margin-bottom:.75rem}
+    #stats{text-align:center;font-size:1.1rem;font-variant-numeric:tabular-nums}
     #controls{display:flex;justify-content:center;flex-wrap:wrap;gap:.75rem}
-    button{padding:.55rem 1rem;border:none;border-radius:.55rem;background:#673ab7;color:#fff;font-size:1rem;cursor:pointer;transition:background .2s}
+    button{padding:.55rem 1rem;border:none;border-radius:.55rem;background:var(--accent);color:#fff;font-size:1rem;cursor:pointer;transition:background .2s}
     button:disabled{background:#555;cursor:not-allowed}
-    button:not(:disabled):hover{background:#7e57c2}
-    #pageContainer{flex:1;background:#222;border:2px solid #333;border-radius:.45rem;padding:1rem;white-space:pre-wrap;overflow-y:auto;font-family:"Fira Mono",monospace;line-height:1.35;user-select:text;max-height:70vh}
-    mark{background:#ffeb3b;color:#000}
-    /* modal */
-    #modal,#helpModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px);z-index:9999;padding:1rem}
-    .dialog{background:#222;padding:1.5rem 2rem;border-radius:.5rem;max-width:90%;width:100%;max-width:420px;text-align:center;box-shadow:0 0 10px #000}
-    #modal.success .dialog{border:2px solid #4caf50}#modal.fail .dialog{border:2px solid #e53935}
-    .dialog p{margin-bottom:1rem;font-size:1.05rem}
-    .dialog button{width:6rem;margin-top:.5rem}
+    button:not(:disabled):hover{background:var(--accent-hover)}
+    button:focus-visible,#pageContainer:focus-visible{outline:2px solid var(--mark);outline-offset:2px}
+    kbd{font-size:.75em;opacity:.7;margin-left:.3em}
+    #pageContainer{flex:1;background:var(--panel);border:2px solid var(--border);border-radius:.45rem;padding:1rem;white-space:pre-wrap;overflow-wrap:anywhere;overflow-y:auto;font-family:"Fira Mono",ui-monospace,monospace;line-height:1.35;user-select:text;max-height:70vh}
+    #pageContainer.placeholder{color:var(--muted);display:flex;align-items:center;justify-content:center;text-align:center;white-space:normal}
+    mark{background:var(--mark);color:#000}
+
+    /* modals */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px);z-index:9999;padding:1rem}
+    .modal.open{display:flex}
+    .dialog{background:var(--panel);padding:1.5rem 2rem;border-radius:.5rem;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;text-align:center;box-shadow:0 0 10px #000}
+    .dialog.wide{max-width:560px}
+    #modal.success .dialog{border:2px solid var(--ok)}#modal.fail .dialog{border:2px solid var(--bad)}
+    .dialog p{margin-bottom:1rem;font-size:1.05rem;white-space:pre-line}
+    .dialog ol{text-align:left;margin:0 0 1rem 1.2rem;line-height:1.5}
+    .dialog button{min-width:6rem;margin-top:.5rem}
+
     /* leaderboard */
-    #boards{display:flex;flex-direction:column;gap:1rem}
-    table{width:100%;border-collapse:collapse}th,td{padding:.35rem;text-align:center;border-bottom:1px solid #333}th{background:#673ab7}
+    table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+    th,td{padding:.35rem;text-align:center;border-bottom:1px solid var(--border)}th{background:var(--accent)}
     caption{font-weight:600;margin-bottom:.3rem}
-    @media(max-width:600px){h1{font-size:1.6rem}button{font-size:.9rem;padding:.5rem .75rem}#controls{flex-direction:column;align-items:center}}
+    .empty{color:var(--muted);padding:1rem}
+
+    /* achievements */
+    #achievementsList{list-style:none;text-align:left;display:grid;gap:.5rem}
+    #achievementsList li{display:flex;align-items:center;gap:.6rem;color:var(--muted)}
+    #achievementsList li.unlocked{color:var(--ok)}
+    #achievementsList li:not(.unlocked) .ach-icon{filter:grayscale(1);opacity:.5}
+    .ach-icon{font-size:1.6rem;width:2.4rem;text-align:center;flex-shrink:0}
+    .ach-desc{display:block;font-size:.85rem;color:var(--muted)}
+
+    /* toast */
+    #toasts{position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:.5rem;z-index:10000;pointer-events:none;width:max-content;max-width:calc(100% - 2rem)}
+    .toast{background:var(--panel);border:2px solid var(--ok);border-radius:.5rem;padding:.6rem 1rem;box-shadow:0 0 10px #000;animation:toast 4s forwards}
+    @keyframes toast{0%{opacity:0;transform:translateY(1rem)}10%,85%{opacity:1;transform:none}100%{opacity:0}}
+    @media (prefers-reduced-motion:reduce){.toast{animation:none}}
+
+    @media(max-width:600px){h1{font-size:1.6rem}button{font-size:.9rem;padding:.5rem .75rem}.dialog{padding:1.25rem}}
   </style>
 </head>
 <body>
-  <h1>Babel Search</h1>
-  <div id="stats">Pages Visited: <span id="pages">0</span> | Time: <span id="time">0.0</span>s</div>
+  <h1>Babel Search</h1>
+  <div id="stats" aria-live="off">Pages Visited: <span id="pages">0</span> | Time: <span id="time">0.0</span>s</div>
   <div id="controls">
-    <button id="startBtn">Start Game</button>
-    <button id="nextBtn" disabled>Next Page (+1 min)</button>
-    <button id="checkBtn" disabled>Check Word</button>
-    <button id="scoresBtn">Scores</button>
-    <button id="helpBtn">Help</button>
+    <button id="startBtn">Start Game</button>
+    <button id="nextBtn" disabled>Next Page (+1 min)<kbd>N</kbd></button>
+    <button id="checkBtn" disabled>Check Word<kbd>C</kbd></button>
     <button id="resetBtn" disabled>Reset</button>
-    <!-- Add button to show achievements -->
-<button id="achievementsBtn">Achievements</button>
+    <button id="scoresBtn">Scores</button>
+    <button id="achievementsBtn">Achievements</button>
+    <button id="helpBtn">Help</button>
   </div>
-  <div id="pageContainer" tabindex="0"></div>
+  <div id="pageContainer" class="placeholder" tabindex="0" aria-label="Library page">Press Start Game to open a random page of the Library of Babel.</div>
 
-  <!-- Modals -->
-  <div id="modal" class="success"><div class="dialog"><p id="modalMsg"></p><button id="modalOk">OK</button></div></div>
-  <div id="helpModal"><div class="dialog"><h2>How to Play</h2><p>1. Tap <b>Start Game</b> to load a random Library of Babel page.<br>2. Highlight any real English word (≥3 letters).<br>3. Tap <b>Check Word</b>. Correct words stop the timer; wrong words add 60 s and load a new page.<br>4. <b>Next Page</b> skips the page (+60 s penalty).<br>5. Long words earn bonuses: -5 s per letter beyond the 4th.</p><button id="helpOk">Got it!</button></div></div>
-  <!-- Achievements Modal -->
-<div id="achievementsModal" style="display:none">
-  <div class="dialog">
-    <h2>Achievements</h2>
-    <ul id="achievementsList" style="text-align:left;list-style:none;padding-left:0"></ul>
-    <button id="achievementsClose">Close</button>
+  <!-- Result modal -->
+  <div id="modal" class="modal success" role="dialog" aria-modal="true" aria-labelledby="modalMsg">
+    <div class="dialog"><p id="modalMsg"></p><button id="modalOk">OK</button></div>
   </div>
-</div>
-  <!-- Leaderboards -->
-  <div id="boards" style="display:none">
-   <div class="dialog">
-     <table id="localBoard"><caption>Your Top Scores</caption><thead><tr><th>#</th><th>Time (s)</th><th>Pages</th><th>Date</th><th>Word</th></tr></thead><tbody></tbody></table>
-     <button id="boardsClose">Close</button>
-   </div>
+
+  <!-- Help modal -->
+  <div id="helpModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="dialog">
+      <h2 id="helpTitle">How to Play</h2>
+      <ol>
+        <li>Tap <b>Start Game</b> to load a random Library of Babel page.</li>
+        <li>Highlight any real English word (3–20 letters).</li>
+        <li>Tap <b>Check Word</b> (or press <kbd>C</kbd>). A correct word stops the timer. A wrong word adds 60 s and loads a new page.</li>
+        <li><b>Next Page</b> (or <kbd>N</kbd>) skips the page with a 60 s penalty.</li>
+        <li>Long words earn a bonus of −5 s for every letter after the 4th.</li>
+      </ol>
+      <button data-close>Got it!</button>
+    </div>
   </div>
+
+  <!-- Achievements modal -->
+  <div id="achievementsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="achTitle">
+    <div class="dialog wide">
+      <h2 id="achTitle">Achievements <span id="achCount"></span></h2>
+      <ul id="achievementsList"></ul>
+      <button data-close>Close</button>
+    </div>
+  </div>
+
+  <!-- Leaderboard modal -->
+  <div id="boards" class="modal" role="dialog" aria-modal="true" aria-label="Your top scores">
+    <div class="dialog wide">
+      <table id="localBoard"><caption>Your Top Scores</caption><thead><tr><th>#</th><th>Time (s)</th><th>Pages</th><th>Date</th><th>Word</th></tr></thead><tbody></tbody></table>
+      <button data-close>Close</button>
+    </div>
+  </div>
+
+  <div id="toasts" aria-live="polite"></div>
 
 <script>
+"use strict";
+
 /* ---------------- Configuration ---------------- */
 const DICTIONARY_URL = "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt";
-const makeRandomPageURL = () => "https://api.allorigins.win/raw?url=" + encodeURIComponent(`https://libraryofbabel.info/random.cgi?nocache=${Date.now()}`);
-const MIN_LEN = 3;
+const makeRandomPageURL = () => "https://api.allorigins.win/raw?url=" +
+  encodeURIComponent(`https://libraryofbabel.info/random.cgi?nocache=${Date.now()}`);
+const MIN_LEN = 3, MAX_LEN = 20;
+const PENALTY = 60;            // seconds for a skip or wrong word
+const BONUS_PER_LETTER = 5;    // seconds off per letter beyond BONUS_FROM
+const BONUS_FROM = 4;
+const FETCH_TIMEOUT_MS = 15000;
+const MAX_SCORES = 20;
 
-/* ---------------- State ---------------- */
-const dictionary=new Set();let dictReady=false;let timerId=null;let startPerf=0;let extraSeconds=0;let pagesVisited=0;let gameActive=false;let lastRange=null;let lastText="";
-const deviceIdPromise=(async()=>{const data=navigator.userAgent+"|"+navigator.platform+"|"+screen.width+"x"+screen.height;const enc=new TextEncoder().encode(data);const hashBuf=await crypto.subtle.digest('SHA-256',enc);return Array.from(new Uint8Array(hashBuf)).map(b=>b.toString(16).padStart(2,'0')).join('');})();
-
-/* ---------------- DOM ---------------- */
-const qs=id=>document.getElementById(id);
-const pageDiv=qs('pageContainer');const pagesSpan=qs('pages');const timeSpan=qs('time');
-const startBtn=qs('startBtn');const nextBtn=qs('nextBtn');const checkBtn=qs('checkBtn');const resetBtn=qs('resetBtn');const scoresBtn=qs('scoresBtn');const helpBtn=qs('helpBtn');
-const modal=qs('modal');const modalMsg=qs('modalMsg');const modalOk=qs('modalOk');
-const helpModal=qs('helpModal');const helpOk=qs('helpOk');
-const boards=qs('boards');const boardsClose=qs('boardsClose');
-const achBtn = document.getElementById("achievementsBtn");
-const achModal = document.getElementById("achievementsModal");
-const achClose = document.getElementById("achievementsClose");
-const achList = document.getElementById("achievementsList");
-
-// ach button
-achBtn.onclick = () => {
-  achModal.style.display = 'flex';
-  const unlocked = new Set(JSON.parse(localStorage.getItem('babelAch') || '[]'));
-  achList.innerHTML = '';
-  achievements.forEach((a, index) => {
-  const li = document.createElement('li');
-  li.style.display = 'flex';
-  li.style.alignItems = 'center';
-  li.style.gap = '.5rem';
-
-const emojiMap = {
-  firstWin: "🌟",
-  tenPages: "📖",
-  fastWin: "⚡",
-  longWord: "🧠",
-  earlyBonus: "⏱️",
-  fiveWins: "🏅",
-  fiftyPages: "📚",
-  resetter: "🔁",
-  wordHunter: "🔤",
-  pageSkipper: "⏩",
-  dailyPlay: "📆",
-  page100: "💯",
-  bonus100: "⏳",
-  wordLength15: "📏",
-  twentyWins: "🥇",
-  unique50: "🧾",
-  noBonus: "🚫⏱️",
-  onePage: "🎯",
-  sevenDayStreak: "🗓️",
-  hundredWins: "🏆",
-  alphabetFan: "🔡",
-  noSkips: "🎯",
-  skipperElite: "🚀",
-  word10: "📝",
-  daily10: "📅",
-  bonus200: "⏳✨",
-  reset10: "🔄",
-  longest20: "👑",
-  comboWin: "🎖️",
-  unlucky: "🤕",
-  extremeSkips: "🔥",
-  tenSkipsWin: "🧱",
-  fiveDays: "🗓",
-  threeBonus: "⏳✅",
-  unique20: "🔠",
-  zeroPages: "🚀",
-  quickFive: "⚡️🏅",
-  threeWinStreak: "🥉",
-  reset5: "🔁🔁",
-  logophileBonus: "🧠⏳",
-  word30: "📚✨",
-  tenDayStreak: "📅🔥",
-  firstDay: "🌅",
-  longWord5: "🧩",
-  minTime: "💨",
-  noFails: "🎯✅",
-  retryMaster: "🔁🔥",
-  bookworm: "🐛📖",
-  obsessed: "🌀",
-  tripleThreat: "🎯📚⏱️",
+/* ---------------- Storage helpers ---------------- */
+const store = {
+  get(key, fallback) {
+    try { const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); }
+    catch { return fallback; }
+  },
+  set(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage full or blocked */ }
+  },
 };
+const todayKey = () => new Date().toISOString().slice(0, 10);
 
-// Use emoji instead of image
-const icon = document.createElement('span');
-icon.textContent = emojiMap[a.id] || "🏆";
-icon.style.fontSize = "1.6rem";
-li.appendChild(icon);
-
-  const span = document.createElement('span');
-  span.textContent = a.name;
-  span.style.color = unlocked.has(a.id) ? '#4caf50' : '#aaa';
-  span.title = a.description || 'No description';
-  li.appendChild(span);
-    li.style.color = unlocked.has(a.id) ? '#4caf50' : '#aaa';
-    li.style.marginBottom = '.35rem';
-    achList.appendChild(li);
-  });
-};
-achClose.onclick = () => achModal.style.display = 'none';
-
-/* ---------------- Utility ---------------- */
-const fmt=s=>s.toFixed(1);
-function currentElapsed(){return((performance.now()-startPerf)/1000)+extraSeconds;}
-function updateStats(){timeSpan.textContent=fmt(Math.max(0,currentElapsed()));pagesSpan.textContent=pagesVisited;}
-function startTimer(){startPerf=performance.now();timerId=setInterval(updateStats,100);}function stopTimer(){clearInterval(timerId);updateStats();}
-function showModal(msg,isSuccess){modalMsg.textContent=msg;modal.classList.toggle('success',isSuccess);modal.classList.toggle('fail',!isSuccess);modal.style.display='flex';}
-modalOk.onclick=()=>modal.style.display='none';
-helpBtn.onclick=()=>helpModal.style.display='flex';helpOk.onclick=()=>helpModal.style.display='none';
-boardsClose.onclick=()=>boards.style.display='none';
-
-/* ---------------- Dictionary ---------------- */
-async function loadDictionary(){const txt=await fetch(DICTIONARY_URL).then(r=>r.text());txt.split(/\r?\n/).forEach(w=>dictionary.add(w.trim().toLowerCase()));dictReady=true;}
-
-/* ---------------- Page fetch ---------------- */
-async function fetchRandomPageText(){const html=await fetch(makeRandomPageURL()).then(r=>r.text());const temp=document.createElement('html');temp.innerHTML=html;const pre=temp.querySelector('pre');return pre?pre.innerText:'(failed to parse page)';}
-async function loadPage(){pageDiv.textContent='Loading…';window.getSelection().removeAllRanges();lastRange=null;try{const t=await fetchRandomPageText();pagesVisited++;pageDiv.textContent=t;pageDiv.scrollTop=0;updateStats();}catch(e){pageDiv.textContent='Error: '+e.message;}}
-
-/* ---------------- Game control ---------------- */
-function resetGame(){gameActive=false;pagesVisited=0;extraSeconds=0;stopTimer();pageDiv.textContent='';updateStats();startBtn.disabled=false;nextBtn.disabled=checkBtn.disabled=resetBtn.disabled=true;}
-async function startGame(){if(!dictReady){startBtn.textContent='Loading…';await loadDictionary();startBtn.textContent='Start Game';}
- gameActive=true;pagesVisited=0;extraSeconds=0;startTimer();updateStats();await loadPage();startBtn.disabled=true;nextBtn.disabled=checkBtn.disabled=resetBtn.disabled=false;}
-async function nextPage(){if(!gameActive)return;extraSeconds+=60;await loadPage();}
-
-/* -------- Selection helpers -------- */
-function storeSelection(){const sel=window.getSelection();if(sel&&sel.rangeCount){lastRange=sel.getRangeAt(0).cloneRange();lastText=sel.toString().trim();}}
-pageDiv.addEventListener('mouseup',storeSelection);pageDiv.addEventListener('touchend',storeSelection);
-
-function normalize(w){return w.toLowerCase().replace(/[^a-z]/g,'');}
-function validWord(raw){return new RegExp(`^[A-Za-z]{${MIN_LEN},20}$`).test(raw);}function applyBonus(len){const over=Math.max(len-4,0);if(!over)return 0;const deduct=Math.min(over*5,currentElapsed());extraSeconds-=deduct;updateStats();return deduct;}
-
-async function handleSuccess(word){const bonus=applyBonus(word.length);if(lastRange){const mark=document.createElement('mark');lastRange.surroundContents(mark);}gameActive=false;stopTimer();nextBtn.disabled=checkBtn.disabled=true;await saveLocalScore();await saveWorldScore();showModal(`Success! “${word}” in ${pagesVisited} page(s).\nBonus: -${fmt(bonus)}s\nFinal: ${timeSpan.textContent}s`,true);}
-
-async function checkWord(){if(!gameActive)return;if(!lastText){showModal('Select a word first.',false);return;}if(!validWord(lastText)){showModal('Select a single alphabetic word (≥3 letters).',false);return;}const word=normalize(lastText);if(dictionary.has(word)){await handleSuccess(word);}else{extraSeconds+=60;updateStats();await loadPage();showModal(`“${lastText}” not in dictionary. +60 s and new page.`,false);}lastRange=null;lastText="";}
-
-/* -------- Leaderboards -------- */
-function getLocalScores(){return JSON.parse(localStorage.getItem('babelScores')||'[]');}
-function saveLocalScore(){const list=getLocalScores();list.push({time:+timeSpan.textContent,pages:pagesVisited,date:new Date().toLocaleDateString()});list.sort((a,b)=>a.time-b.time);localStorage.setItem('babelScores',JSON.stringify(list.slice(0,20)));}
-function populateLocalBoard(){const tbody=document.querySelector('#localBoard tbody');tbody.innerHTML='';getLocalScores().forEach((s,i)=>{tbody.insertRow().innerHTML=`<td>${i+1}</td><td>${fmt(s.time)}</td><td>${s.pages}</td><td>${s.date}</td><td>${s.word || ''}</td>`;});}
-
-async function saveWorldScore(){if(!window.db)return;const dateStr=new Date().toISOString().slice(0,10);const id=await deviceIdPromise;const path=`scores/${dateStr}/${id}`;const snap=await get(ref(window.db,path));if(snap.exists())return;await set(ref(window.db,path),{time:+timeSpan.textContent,pages:pagesVisited,ts:Date.now()});}
-async function populateWorldBoard(){if(!window.db)return;const dateStr=new Date().toISOString().slice(0,10);const q=query(ref(window.db,'scores/'+dateStr),orderByChild('time'),limitToFirst(10));const snap=await get(q);const tbody=document.querySelector('#worldBoard tbody');tbody.innerHTML='';if(!snap.exists())return;const list=[];snap.forEach(ch=>list.push({...ch.val(),user:ch.key.slice(0,6)}));list.sort((a,b)=>a.time-b.time).forEach((s,i)=>{tbody.insertRow().innerHTML=`<td>${i+1}</td><td>${fmt(s.time)}</td><td>${s.pages}</td><td>${s.user}</td>`;});}
-
-scoresBtn.onclick=async()=>{populateLocalBoard();await populateWorldBoard();boards.style.display='flex';};
-
-/* -------- Event bindings -------- */
-startBtn.onclick=startGame;nextBtn.onclick=nextPage;resetBtn.onclick=resetGame;
-checkBtn.addEventListener('mousedown',e=>{e.preventDefault();checkWord();});checkBtn.addEventListener('touchstart',e=>{e.preventDefault();checkWord();});
-
-document.addEventListener('keydown',e=>{if(!gameActive)return;if(e.key==='n')nextPage();if(e.key==='c')checkWord();});
-
-/* -------- First-visit help -------- */
-if(!localStorage.getItem('babelVisited')){setTimeout(()=>helpModal.style.display='flex',400);localStorage.setItem('babelVisited','1');}
-/* -------- Achievements -------- */
-const achievements = [
-  { id: "firstWin", name: "First Word!", description: "Find your first valid word.", condition: s => s.count === 1 },
-  { id: "tenPages", name: "Marathon Reader", description: "Visit at least 10 pages in one session.", condition: s => s.totalPages >= 10 },
-  { id: "fastWin", name: "Speed Demon", description: "Finish a game in 10 seconds or less.", condition: s => s.fastestTime <= 10 },
-  { id: "longWord", name: "Logophile", description: "Submit a word that is at least 12 letters long.", condition: s => s.longestWord.length >= 12 },
-  { id: "earlyBonus", name: "Efficiency Expert", description: "Earn 30 or more seconds in bonuses.", condition: s => s.bonusTime >= 30 },
-  { id: "fiveWins", name: "Determined", description: "Win 5 games.", condition: s => s.count >= 5 },
-  { id: "fiftyPages", name: "Library Explorer", description: "Visit 50 pages across all games.", condition: s => s.totalPages >= 50 },
-  { id: "resetter", name: "Restart Pro", description: "Reset the game 3 times.", condition: s => s.resetCount >= 3 },
-  { id: "wordHunter", name: "Word Hunter", description: "Find 10 unique words.", condition: s => s.uniqueWords.length >= 10 },
-  { id: "pageSkipper", name: "Impatient", description: "Skip 10 pages.", condition: s => s.pageSkips >= 10 },
-  { id: "dailyPlay", name: "Routine Reader", description: "Play the game on 3 different days.", condition: s => s.playDays >= 3 },
-  { id: "page100", name: "Centennial Surfer", description: "Visit 100 total pages.", condition: s => s.totalPages >= 100 },
-  { id: "bonus100", name: "Time Saver", description: "Earn 100 or more seconds in bonuses.", condition: s => s.bonusTime >= 100 },
-  { id: "wordLength15", name: "Wordsmith", description: "Submit a word that is at least 15 letters long.", condition: s => s.longestWord.length >= 15 },
-  { id: "twentyWins", name: "Pro Player", description: "Win 20 games.", condition: s => s.count >= 20 },
-  { id: "unique50", name: "Lexical Collector", description: "Find 50 unique words.", condition: s => s.uniqueWords.length >= 50 },
-  { id: "noBonus", name: "Barebones", description: "Win without earning any bonus time.", condition: s => s.bonusTime === 0 },
-  { id: "onePage", name: "One Shot", description: "Win on the very first page.", condition: s => s.totalPages === 1 },
-  { id: "sevenDayStreak", name: "Weekly Reader", description: "Play the game on 7 different days.", condition: s => s.playDays >= 7 },
-  { id: "hundredWins", name: "Master of Babel", description: "Win 100 games.", condition: s => s.count >= 100 },
-  { id: "alphabetFan", name: "Alphabet Adept", description: "Use all 26 letters across your found words.", condition: s => new Set(s.uniqueWords.join('').toLowerCase().split('')).size >= 26 },
-  { id: "noSkips", name: "Focused", description: "Win a game without skipping any pages.", condition: s => s.pageSkips === 0 },
-  { id: "skipperElite", name: "Chronic Skipper", description: "Skip 50 pages total.", condition: s => s.pageSkips >= 50 },
-  { id: "word10", name: "Small Start", description: "Find at least 5 unique words.", condition: s => s.uniqueWords.length >= 5 },
-  { id: "daily10", name: "Habitual", description: "Play the game on 10 different days.", condition: s => s.playDays >= 10 },
-  { id: "bonus200", name: "Efficiency Legend", description: "Earn 200 or more seconds in bonuses.", condition: s => s.bonusTime >= 200 },
-  { id: "reset10", name: "Restart King", description: "Reset the game 10 times.", condition: s => s.resetCount >= 10 },
-  { id: "longest20", name: "Word Giant", description: "Submit a word that is at least 20 letters long.", condition: s => s.longestWord.length >= 20 },
-  { id: "comboWin", name: "Perfect Play", description: "Win with bonus time and no page skips.", condition: s => s.bonusTime > 0 && s.pageSkips === 0 },
-  { id: "unlucky", name: "Try, Try Again", description: "Play 15 games with no fast wins (under 60s).", condition: s => s.count >= 15 && s.fastestTime >= 60 },
-  { id: "extremeSkips", name: "Page Burner", description: "Skip 100 pages total.", condition: s => s.pageSkips >= 100 },
-  { id: "tenSkipsWin", name: "Diligent Digger", description: "Win after skipping 10+ pages.", condition: s => s.pageSkips >= 10 },
-  { id: "fiveDays", name: "Occasional Reader", description: "Play on 5 different days.", condition: s => s.playDays >= 5 },
-  { id: "threeBonus", name: "Time Hoarder", description: "Earn bonuses at least 3 times in one game.", condition: s => s.bonusCount >= 3 },
-  { id: "unique20", name: "Vocabulary Builder", description: "Find 20 unique words.", condition: s => s.uniqueWords.length >= 20 },
-  { id: "zeroPages", name: "Librarian’s Luck", description: "Find a valid word on the first click (zero pages skipped).", condition: s => s.totalPages === 0 },
-  { id: "quickFive", name: "Quick Thinker", description: "Win 5 games each under 30 seconds.", condition: s => s.quickWins >= 5 },
-  { id: "threeWinStreak", name: "Hot Streak", description: "Win 3 games in a row.", condition: s => s.winStreak >= 3 },
-  { id: "reset5", name: "Rebooter", description: "Reset the game 5 times.", condition: s => s.resetCount >= 5 },
-  { id: "logophileBonus", name: "Bonus Brainiac", description: "Earn bonus time using a 12+ letter word.", condition: s => s.longestWord.length >= 12 && s.bonusTime > 0 },
-  { id: "word30", name: "Dictionary Diver", description: "Find 30 unique words.", condition: s => s.uniqueWords.length >= 30 },
-  { id: "tenDayStreak", name: "Streaker", description: "Play the game 10 days in a row.", condition: s => s.dayStreak >= 10 },
-  { id: "firstDay", name: "Welcome!", description: "Play the game for the first time.", condition: s => s.playDays >= 1 },
-  { id: "longWord5", name: "Super Speller", description: "Find 5 different 12+ letter words.", condition: s => s.longWords.length >= 5 },
-  { id: "minTime", name: "Lighting Fast", description: "Finish a game in under 5 seconds.", condition: s => s.fastestTime <= 5 },
-  { id: "noFails", name: "Flawless Victory", description: "Win without submitting any invalid words.", condition: s => s.invalidWords === 0 },
-  { id: "retryMaster", name: "Persistence Pays", description: "Win after 5 resets.", condition: s => s.resetCount >= 5 },
-  { id: "bookworm", name: "Bookworm", description: "Play 25 times.", condition: s => s.count >= 25 },
-  { id: "obsessed", name: "Can't Stop!", description: "Play 3+ times in one day.", condition: s => s.dailySessions >= 3 },
-  { id: "tripleThreat", name: "Triple Threat", description: "Win using bonus time, a long word, and no skips.", condition: s => s.bonusTime > 0 && s.pageSkips === 0 && s.longestWord.length >= 12 }
-];
-
-function getStats() {
-  const list = getLocalScores();
-  const fastest = list.length ? Math.min(...list.map(s => s.time)) : Infinity;
-
+/* Lifetime stats live in one object. Older versions used separate keys, so
+   seed from those the first time this version runs. */
+function loadStats() {
+  const saved = store.get("babelStats", null);
+  if (saved) return saved;
+  const legacyScores = store.get("babelScores", []);
   return {
-    count: list.length,
-    fastestTime: fastest,
-    totalPages: list.reduce((a, s) => a + s.pages, 0),
-    longestWord: localStorage.getItem('babelLongest') || "",
-    longWords: JSON.parse(localStorage.getItem('babelLongWords') || '[]'), // <-- NEW
-    bonusTime: parseFloat(localStorage.getItem('babelBonus') || '0'),
-    bonusCount: +(localStorage.getItem('babelBonusCount') || '0'), // <-- NEW
-    pageSkips: +(localStorage.getItem('babelSkips') || '0'),
-    resetCount: +(localStorage.getItem('babelReset') || '0'),
-    invalidWords: +(localStorage.getItem('babelInvalids') || '0'), // <-- NEW
-    quickWins: +(localStorage.getItem('babelQuickWins') || '0'),   // <-- NEW
-    winStreak: +(localStorage.getItem('babelWinStreak') || '0'),   // <-- NEW
-    uniqueWords: JSON.parse(localStorage.getItem('babelWords') || '[]'),
-    playDays: JSON.parse(localStorage.getItem('babelDays') || '[]').length,
-    dailySessions: +(localStorage.getItem('babelDailySessions') || '0'), // <-- NEW
-    dayStreak: +(localStorage.getItem('babelDayStreak') || '0'),         // <-- NEW
+    games: legacyScores.length,
+    wins: legacyScores.length,
+    totalPages: legacyScores.reduce((a, s) => a + (s.pages || 0), 0),
+    pageSkips: 0, resets: 0, invalids: 0,
+    bonusTime: parseFloat(localStorage.getItem("babelBonus") || "0") || 0,
+    bonusGames: 0, quickWins: 0, winStreak: 0,
+    fastest: legacyScores.length ? Math.min(...legacyScores.map(s => s.time)) : Infinity,
+    longest: localStorage.getItem("babelLongest") || "",
+    words: store.get("babelWords", []),
+    longWords: store.get("babelWords", []).filter(w => w.length >= 12),
+    days: [], lastDay: null, dayStreak: 0,
+    sessionsDay: null, dailySessions: 0,
   };
 }
+let stats = loadStats();
+// JSON can't store Infinity, it becomes null.
+if (stats.fastest == null) stats.fastest = Infinity;
+const saveStats = () => store.set("babelStats", stats);
 
+/* ---------------- Game state ---------------- */
+const dictionary = new Set();
+let dictPromise = null;
+let timerId = null, startPerf = 0, extraSeconds = 0;
+let gameActive = false, loading = false;
+let retryFree = false; // after a failed page load, the next "Next Page" is free
+let lastRange = null, lastText = "";
+// Per-game counters, used by achievements that judge a single game.
+let game = null;
+const newGame = () => ({ pages: 0, skips: 0, invalids: 0, bonus: 0, word: "", time: 0, won: false });
 
-function updateAchievements() {
-  const stats = getStats();
-  const unlocked = JSON.parse(localStorage.getItem('babelAch') || '[]');
-  let changed = false;
-  achievements.forEach(a => {
-    if (!unlocked.includes(a.id) && a.condition(stats)) {
-      unlocked.push(a.id);
-      changed = true;
-      console.log("Unlocked achievement:", a.name);
+/* ---------------- DOM ---------------- */
+const $ = id => document.getElementById(id);
+const pageDiv = $("pageContainer"), pagesSpan = $("pages"), timeSpan = $("time");
+const startBtn = $("startBtn"), nextBtn = $("nextBtn"), checkBtn = $("checkBtn"), resetBtn = $("resetBtn");
+const modal = $("modal"), modalMsg = $("modalMsg");
+
+/* ---------------- Modals ---------------- */
+let lastFocus = null;
+function openModal(el) {
+  lastFocus = document.activeElement;
+  el.classList.add("open");
+  el.querySelector("button")?.focus();
+}
+function closeModal(el) {
+  el.classList.remove("open");
+  lastFocus?.focus?.();
+}
+const openModalEl = () => document.querySelector(".modal.open");
+document.querySelectorAll(".modal").forEach(m => {
+  m.addEventListener("click", e => { if (e.target === m || e.target.matches("[data-close]")) closeModal(m); });
+});
+$("modalOk").onclick = () => closeModal(modal);
+$("helpBtn").onclick = () => openModal($("helpModal"));
+
+function showModal(msg, isSuccess) {
+  modalMsg.textContent = msg;
+  modal.classList.toggle("success", isSuccess);
+  modal.classList.toggle("fail", !isSuccess);
+  openModal(modal);
+}
+
+function toast(text) {
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = text;
+  $("toasts").appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+/* ---------------- Timer ---------------- */
+const fmt = s => s.toFixed(1);
+const currentElapsed = () => Math.max(0, (performance.now() - startPerf) / 1000 + extraSeconds);
+function updateStats() {
+  timeSpan.textContent = fmt(gameActive ? currentElapsed() : (game?.time ?? 0));
+  pagesSpan.textContent = game?.pages ?? 0;
+}
+function startTimer() { clearInterval(timerId); startPerf = performance.now(); timerId = setInterval(updateStats, 100); }
+function stopTimer() { clearInterval(timerId); timerId = null; }
+
+/* ---------------- Network ---------------- */
+async function fetchText(url) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.text();
+  } catch (e) {
+    throw e.name === "AbortError" ? new Error("request timed out") : e;
+  } finally { clearTimeout(t); }
+}
+
+function loadDictionary() {
+  dictPromise ??= fetchText(DICTIONARY_URL).then(txt => {
+    for (const w of txt.split(/\r?\n/)) { const x = w.trim().toLowerCase(); if (x) dictionary.add(x); }
+  }).catch(e => { dictPromise = null; throw e; });
+  return dictPromise;
+}
+
+async function fetchRandomPageText() {
+  const html = await fetchText(makeRandomPageURL());
+  // DOMParser builds an inert document, so nothing in the proxied HTML can run.
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const pre = doc.querySelector("pre");
+  if (!pre) throw new Error("could not read the page");
+  return pre.textContent.replace(/^\s+|\s+$/g, "");
+}
+
+async function loadPage() {
+  loading = true;
+  setButtons();
+  pageDiv.classList.add("placeholder");
+  pageDiv.textContent = "Loading…";
+  window.getSelection().removeAllRanges();
+  lastRange = null; lastText = "";
+  const myGame = game;
+  try {
+    const text = await fetchRandomPageText();
+    if (myGame !== game || !gameActive) return; // reset while loading
+    game.pages++;
+    stats.totalPages++;
+    saveStats();
+    pageDiv.classList.remove("placeholder");
+    pageDiv.textContent = text;
+    pageDiv.scrollTop = 0;
+    updateStats();
+    checkAchievements();
+  } catch (e) {
+    if (myGame === game) pageDiv.textContent = `Couldn't load a page (${e.message}). Press Next Page to try again. No penalty.`;
+    if (myGame === game) retryFree = true;
+  } finally {
+    loading = false;
+    setButtons();
+  }
+}
+/* ---------------- Game control ---------------- */
+function setButtons() {
+  startBtn.disabled = gameActive || loading;
+  nextBtn.disabled = checkBtn.disabled = !gameActive || loading;
+  resetBtn.disabled = !gameActive;
+}
+
+function recordDay() {
+  const today = todayKey();
+  if (!stats.days.includes(today)) stats.days.push(today);
+  if (stats.lastDay !== today) {
+    const yesterday = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+    stats.dayStreak = stats.lastDay === yesterday ? stats.dayStreak + 1 : 1;
+    stats.lastDay = today;
+  }
+  if (stats.sessionsDay !== today) { stats.sessionsDay = today; stats.dailySessions = 0; }
+  stats.dailySessions++;
+}
+
+async function startGame() {
+  if (gameActive || loading) return;
+  if (!dictionary.size) {
+    startBtn.textContent = "Loading dictionary…";
+    startBtn.disabled = true;
+    try { await loadDictionary(); }
+    catch (e) {
+      startBtn.textContent = "Start Game";
+      startBtn.disabled = false;
+      showModal(`Couldn't load the dictionary (${e.message}). Check your connection and try again.`, false);
+      return;
     }
-  });
-  if (changed) localStorage.setItem('babelAch', JSON.stringify(unlocked));
+    startBtn.textContent = "Start Game";
+  }
+  game = newGame();
+  gameActive = true;
+  extraSeconds = 0;
+  retryFree = false;
+  stats.games++;
+  recordDay();
+  saveStats();
+  startTimer();
+  updateStats();
+  await loadPage();
 }
 
-function recordGameStats(word, bonus) {
-  const longest = localStorage.getItem('babelLongest') || '';
-  if (word.length > longest.length) localStorage.setItem('babelLongest', word);
-  const words = new Set(JSON.parse(localStorage.getItem('babelWords') || '[]'));
-  words.add(word);
-  localStorage.setItem('babelWords', JSON.stringify([...words]));
-  const bonusSec = parseFloat(localStorage.getItem('babelBonus') || '0');
-  localStorage.setItem('babelBonus', (bonusSec + bonus).toFixed(1));
-  const days = new Set(JSON.parse(localStorage.getItem('babelDays') || '[]'));
-  days.add(new Date().toLocaleDateString());
-  localStorage.setItem('babelDays', JSON.stringify([...days]));
-}
-
-// Enhance saveLocalScore to include word
-function saveLocalScore(word = '') {
-  const list = getLocalScores();
-  list.push({ time: +timeSpan.textContent, pages: pagesVisited, date: new Date().toLocaleDateString(), word });
-  list.sort((a, b) => a.time - b.time);
-  localStorage.setItem('babelScores', JSON.stringify(list.slice(0, 20)));
-  updateAchievements();
-}
-
-// Update leaderboard rendering to show word used
-function populateLocalBoard() {
-  const tbody = document.querySelector('#localBoard tbody');
-  tbody.innerHTML = '';
-  getLocalScores().forEach((s, i) => {
-    tbody.insertRow().innerHTML = `<td>${i + 1}</td><td>${fmt(s.time)}</td><td>${s.pages}</td><td>${s.date}</td><td>${s.word || ''}</td>`;
-  });
-}
-
-// Update success handler to pass word
-async function handleSuccess(word) {
-  const bonus = applyBonus(word.length);
-  if (lastRange) {
-    const mark = document.createElement('mark');
-    lastRange.surroundContents(mark);
+function resetGame() {
+  if (gameActive) {
+    stats.resets++;
+    stats.winStreak = 0;
+    saveStats();
   }
   gameActive = false;
+  loading = false;
   stopTimer();
-  nextBtn.disabled = checkBtn.disabled = true;
-  recordGameStats(word, bonus);
-  await saveLocalScore(word);
-  showModal(`Success! “${word}” in ${pagesVisited} page(s).
-Bonus: -${fmt(bonus)}s
-Final: ${timeSpan.textContent}s`, true);
+  game = null;
+  extraSeconds = 0;
+  lastRange = null; lastText = "";
+  pageDiv.classList.add("placeholder");
+  pageDiv.textContent = "Press Start Game to open a random page of the Library of Babel.";
+  updateStats();
+  setButtons();
+  checkAchievements();
 }
 
+async function nextPage() {
+  if (!gameActive || loading) return;
+  if (retryFree) retryFree = false;
+  else {
+    extraSeconds += PENALTY;
+    game.skips++;
+    stats.pageSkips++;
+    saveStats();
+  }
+  updateStats();
+  await loadPage();
+}
+
+/* ---------------- Selection ---------------- */
+// Keep the last non-empty selection inside the page, so tapping the
+// Check button (which can clear the selection on touch screens) still works.
+document.addEventListener("selectionchange", () => {
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount || sel.isCollapsed) return;
+  const range = sel.getRangeAt(0);
+  if (!pageDiv.contains(range.commonAncestorContainer)) return;
+  lastRange = range.cloneRange();
+  // Ignore punctuation/spaces caught at either end, e.g. "word," -> "word".
+  lastText = sel.toString().replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, "");
+});
+
+const isValidWord = raw => new RegExp(`^[A-Za-z]{${MIN_LEN},${MAX_LEN}}$`).test(raw);
+
+function applyBonus(len) {
+  const over = Math.max(len - BONUS_FROM, 0);
+  if (!over) return 0;
+  const deduct = Math.min(over * BONUS_PER_LETTER, currentElapsed());
+  extraSeconds -= deduct;
+  return deduct;
+}
+
+function highlightSelection() {
+  if (!lastRange) return;
+  try { lastRange.surroundContents(document.createElement("mark")); } catch { /* range crossed an element */ }
+}
+
+async function checkWord() {
+  if (!gameActive || loading) return;
+  if (!lastText) { showModal("Select a word on the page first.", false); return; }
+  if (!isValidWord(lastText)) { showModal(`Select a single word of ${MIN_LEN}–${MAX_LEN} letters.`, false); return; }
+  const word = lastText.toLowerCase();
+  if (dictionary.has(word)) { handleSuccess(word); return; }
+
+  extraSeconds += PENALTY;
+  game.invalids++;
+  stats.invalids++;
+  saveStats();
+  updateStats();
+  showModal(`“${lastText}” is not in the dictionary. +${PENALTY} s and a new page.`, false);
+  await loadPage();
+}
+
+function handleSuccess(word) {
+  const bonus = applyBonus(word.length);
+  highlightSelection();
+  window.getSelection().removeAllRanges();
+  const time = +fmt(currentElapsed());
+  gameActive = false;
+  stopTimer();
+  Object.assign(game, { won: true, word, bonus, time });
+  updateStats();
+  setButtons();
+  recordWin(game);
+  saveLocalScore(game);
+  checkAchievements(game);
+  lastRange = null; lastText = "";
+  showModal(`Success! “${word}” in ${game.pages} page(s).\nBonus: −${fmt(bonus)} s\nFinal: ${fmt(time)} s`, true);
+}
+
+function recordWin(g) {
+  stats.wins++;
+  stats.winStreak++;
+  stats.fastest = Math.min(stats.fastest, g.time);
+  if (g.time < 30) stats.quickWins++;
+  if (g.bonus > 0) { stats.bonusGames++; stats.bonusTime = +(stats.bonusTime + g.bonus).toFixed(1); }
+  if (g.word.length > stats.longest.length) stats.longest = g.word;
+  if (!stats.words.includes(g.word)) stats.words.push(g.word);
+  if (g.word.length >= 12 && !stats.longWords.includes(g.word)) stats.longWords.push(g.word);
+  saveStats();
+}
+
+/* ---------------- Leaderboard ---------------- */
+const getLocalScores = () => store.get("babelScores", []);
+function saveLocalScore(g) {
+  const list = getLocalScores();
+  list.push({ time: g.time, pages: g.pages, date: new Date().toLocaleDateString(), word: g.word });
+  list.sort((a, b) => a.time - b.time);
+  store.set("babelScores", list.slice(0, MAX_SCORES));
+}
+function populateLocalBoard() {
+  const tbody = document.querySelector("#localBoard tbody");
+  tbody.replaceChildren();
+  const scores = getLocalScores();
+  if (!scores.length) {
+    const td = tbody.insertRow().insertCell();
+    td.colSpan = 5; td.className = "empty"; td.textContent = "No wins yet. Go find a word!";
+    return;
+  }
+  scores.forEach((s, i) => {
+    const row = tbody.insertRow();
+    for (const v of [i + 1, fmt(s.time), s.pages, s.date, s.word || ""]) row.insertCell().textContent = v;
+  });
+}
+$("scoresBtn").onclick = () => { populateLocalBoard(); openModal($("boards")); };
+
+/* ---------------- Achievements ---------------- */
+// condition(s, g): s = lifetime stats, g = the game just won (only passed on a win).
+const achievements = [
+  { id: "firstDay", icon: "🌅", name: "Welcome!", description: "Play the game for the first time.", condition: s => s.days.length >= 1 },
+  { id: "firstWin", icon: "🌟", name: "First Word!", description: "Find your first valid word.", condition: s => s.wins >= 1 },
+  { id: "tenPages", icon: "📖", name: "Marathon Reader", description: "Visit at least 10 pages in one game.", condition: s => (game?.pages ?? 0) >= 10 },
+  { id: "fastWin", icon: "⚡", name: "Speed Demon", description: "Finish a game in 10 seconds or less.", condition: (s, g) => g?.time <= 10 },
+  { id: "minTime", icon: "💨", name: "Lightning Fast", description: "Finish a game in under 5 seconds.", condition: (s, g) => g?.time < 5 },
+  { id: "longWord", icon: "🧠", name: "Logophile", description: "Find a word at least 12 letters long.", condition: s => s.longest.length >= 12 },
+  { id: "wordLength15", icon: "📏", name: "Wordsmith", description: "Find a word at least 15 letters long.", condition: s => s.longest.length >= 15 },
+  { id: "longest20", icon: "👑", name: "Word Giant", description: "Find a word 20 letters long.", condition: s => s.longest.length >= 20 },
+  { id: "longWord5", icon: "🧩", name: "Super Speller", description: "Find 5 different words of 12+ letters.", condition: s => s.longWords.length >= 5 },
+  { id: "earlyBonus", icon: "⏱️", name: "Efficiency Expert", description: "Earn 30 seconds of bonuses in total.", condition: s => s.bonusTime >= 30 },
+  { id: "bonus100", icon: "⏳", name: "Time Saver", description: "Earn 100 seconds of bonuses in total.", condition: s => s.bonusTime >= 100 },
+  { id: "bonus200", icon: "⏳✨", name: "Efficiency Legend", description: "Earn 200 seconds of bonuses in total.", condition: s => s.bonusTime >= 200 },
+  { id: "threeBonus", icon: "⏳✅", name: "Time Hoarder", description: "Earn a length bonus in 3 different games.", condition: s => s.bonusGames >= 3 },
+  { id: "fiveWins", icon: "🏅", name: "Determined", description: "Win 5 games.", condition: s => s.wins >= 5 },
+  { id: "twentyWins", icon: "🥇", name: "Pro Player", description: "Win 20 games.", condition: s => s.wins >= 20 },
+  { id: "hundredWins", icon: "🏆", name: "Master of Babel", description: "Win 100 games.", condition: s => s.wins >= 100 },
+  { id: "bookworm", icon: "🐛📖", name: "Bookworm", description: "Start 25 games.", condition: s => s.games >= 25 },
+  { id: "fiftyPages", icon: "📚", name: "Library Explorer", description: "Visit 50 pages across all games.", condition: s => s.totalPages >= 50 },
+  { id: "page100", icon: "💯", name: "Centennial Surfer", description: "Visit 100 pages across all games.", condition: s => s.totalPages >= 100 },
+  { id: "word10", icon: "📝", name: "Small Start", description: "Find 5 unique words.", condition: s => s.words.length >= 5 },
+  { id: "wordHunter", icon: "🔤", name: "Word Hunter", description: "Find 10 unique words.", condition: s => s.words.length >= 10 },
+  { id: "unique20", icon: "🔠", name: "Vocabulary Builder", description: "Find 20 unique words.", condition: s => s.words.length >= 20 },
+  { id: "word30", icon: "📚✨", name: "Dictionary Diver", description: "Find 30 unique words.", condition: s => s.words.length >= 30 },
+  { id: "unique50", icon: "🧾", name: "Lexical Collector", description: "Find 50 unique words.", condition: s => s.words.length >= 50 },
+  { id: "alphabetFan", icon: "🔡", name: "Alphabet Adept", description: "Use all 26 letters across your found words.", condition: s => new Set(s.words.join("")).size >= 26 },
+  { id: "pageSkipper", icon: "⏩", name: "Impatient", description: "Skip 10 pages in total.", condition: s => s.pageSkips >= 10 },
+  { id: "skipperElite", icon: "🚀", name: "Chronic Skipper", description: "Skip 50 pages in total.", condition: s => s.pageSkips >= 50 },
+  { id: "extremeSkips", icon: "🔥", name: "Page Burner", description: "Skip 100 pages in total.", condition: s => s.pageSkips >= 100 },
+  { id: "resetter", icon: "🔁", name: "Restart Pro", description: "Reset a game 3 times.", condition: s => s.resets >= 3 },
+  { id: "reset5", icon: "🔁🔁", name: "Rebooter", description: "Reset a game 5 times.", condition: s => s.resets >= 5 },
+  { id: "reset10", icon: "🔄", name: "Restart King", description: "Reset a game 10 times.", condition: s => s.resets >= 10 },
+  { id: "retryMaster", icon: "🔁🔥", name: "Persistence Pays", description: "Win a game after 5 or more resets.", condition: (s, g) => g && s.resets >= 5 },
+  { id: "dailyPlay", icon: "📆", name: "Routine Reader", description: "Play on 3 different days.", condition: s => s.days.length >= 3 },
+  { id: "fiveDays", icon: "🗓", name: "Occasional Reader", description: "Play on 5 different days.", condition: s => s.days.length >= 5 },
+  { id: "sevenDayStreak", icon: "🗓️", name: "Weekly Reader", description: "Play on 7 different days.", condition: s => s.days.length >= 7 },
+  { id: "daily10", icon: "📅", name: "Habitual", description: "Play on 10 different days.", condition: s => s.days.length >= 10 },
+  { id: "tenDayStreak", icon: "📅🔥", name: "Streaker", description: "Play 10 days in a row.", condition: s => s.dayStreak >= 10 },
+  { id: "obsessed", icon: "🌀", name: "Can't Stop!", description: "Start 3 games in one day.", condition: s => s.sessionsDay === todayKey() && s.dailySessions >= 3 },
+  { id: "onePage", icon: "🎯", name: "One Shot", description: "Win on the very first page.", condition: (s, g) => g?.pages === 1 },
+  { id: "zeroPages", icon: "🍀", name: "Librarian’s Luck", description: "Win on the first page in under 15 seconds.", condition: (s, g) => g?.pages === 1 && g.time < 15 },
+  { id: "noSkips", icon: "🧘", name: "Focused", description: "Win a game without skipping any pages.", condition: (s, g) => g?.skips === 0 },
+  { id: "noBonus", icon: "🚫", name: "Barebones", description: "Win with a short word (no bonus).", condition: (s, g) => g?.bonus === 0 },
+  { id: "noFails", icon: "✅", name: "Flawless Victory", description: "Win a game without checking a wrong word.", condition: (s, g) => g?.invalids === 0 },
+  { id: "tenSkipsWin", icon: "🧱", name: "Diligent Digger", description: "Win after skipping 10+ pages in that game.", condition: (s, g) => g?.skips >= 10 },
+  { id: "comboWin", icon: "🎖️", name: "Perfect Play", description: "Win with a bonus and no page skips.", condition: (s, g) => g?.bonus > 0 && g.skips === 0 },
+  { id: "logophileBonus", icon: "🧠⏳", name: "Bonus Brainiac", description: "Win with a 12+ letter word.", condition: (s, g) => g?.word.length >= 12 },
+  { id: "tripleThreat", icon: "🎯📚", name: "Triple Threat", description: "Win with a 12+ letter word, no skips and no wrong words.", condition: (s, g) => g?.word.length >= 12 && g.skips === 0 && g.invalids === 0 },
+  { id: "quickFive", icon: "⚡️🏅", name: "Quick Thinker", description: "Win 5 games in under 30 seconds each.", condition: s => s.quickWins >= 5 },
+  { id: "threeWinStreak", icon: "🥉", name: "Hot Streak", description: "Win 3 games in a row without resetting.", condition: s => s.winStreak >= 3 },
+  { id: "unlucky", icon: "🤕", name: "Try, Try Again", description: "Win 15 games without ever finishing under 60 s.", condition: s => s.wins >= 15 && s.fastest >= 60 },
+];
+
+function checkAchievements(wonGame) {
+  const unlocked = store.get("babelAch", []);
+  const fresh = achievements.filter(a => !unlocked.includes(a.id) && a.condition(stats, wonGame));
+  if (!fresh.length) return;
+  store.set("babelAch", [...unlocked, ...fresh.map(a => a.id)]);
+  fresh.forEach((a, i) => setTimeout(() => toast(`${a.icon} Achievement unlocked: ${a.name}`), i * 600));
+}
+
+$("achievementsBtn").onclick = () => {
+  const unlocked = new Set(store.get("babelAch", []));
+  const list = $("achievementsList");
+  list.replaceChildren();
+  // Unlocked first, otherwise in definition order.
+  [...achievements].sort((a, b) => unlocked.has(b.id) - unlocked.has(a.id)).forEach(a => {
+    const li = document.createElement("li");
+    li.classList.toggle("unlocked", unlocked.has(a.id));
+    const icon = document.createElement("span");
+    icon.className = "ach-icon";
+    icon.textContent = a.icon;
+    icon.setAttribute("aria-hidden", "true");
+    const text = document.createElement("span");
+    text.textContent = a.name + (unlocked.has(a.id) ? " ✓" : "");
+    const desc = document.createElement("span");
+    desc.className = "ach-desc";
+    desc.textContent = a.description;
+    text.appendChild(desc);
+    li.append(icon, text);
+    list.appendChild(li);
+  });
+  $("achCount").textContent = `(${unlocked.size}/${achievements.length})`;
+  openModal($("achievementsModal"));
+};
+
+/* ---------------- Event bindings ---------------- */
+startBtn.onclick = startGame;
+nextBtn.onclick = nextPage;
+resetBtn.onclick = resetGame;
+// pointerdown + preventDefault keeps the text selection when the button is pressed.
+checkBtn.addEventListener("pointerdown", e => e.preventDefault());
+checkBtn.addEventListener("click", checkWord);
+
+document.addEventListener("keydown", e => {
+  const open = openModalEl();
+  if (open) {
+    if (e.key === "Escape") { e.preventDefault(); closeModal(open); }
+    return;
+  }
+  if (!gameActive || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+  const k = e.key.toLowerCase();
+  if (k === "n") { e.preventDefault(); nextPage(); }
+  else if (k === "c") { e.preventDefault(); checkWord(); }
+});
+
+/* ---------------- Startup ---------------- */
+saveStats();      // writes migrated stats on first run of this version
+checkAchievements();
+// Start downloading the dictionary in the background so Start Game is instant.
+loadDictionary().catch(() => {});
+if (!localStorage.getItem("babelVisited")) {
+  setTimeout(() => openModal($("helpModal")), 400);
+  try { localStorage.setItem("babelVisited", "1"); } catch {}
+}
 </script>
 </body>
 </html>
